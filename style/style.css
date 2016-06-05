@@ -1,0 +1,27 @@
+body{
+    font-family: 'Oswald', sans-serif; 
+    background-color: #F6F6F6;
+    color:#2B2B2B;
+}
+#mainContent{
+    width: 400px;
+    margin-left:30px;
+    margin-bottom:150px;
+}
+
+#mainContent input{
+    float: right;
+    display: block;
+}
+
+#mainContent input[type="button"]{
+    /*float: right;*/
+    float: left;
+    background-color: #DE1B1B;
+    color:#F6F6F6;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+
+}
+

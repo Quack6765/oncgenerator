@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html lang="en-us">
+
+<head>
+<meta charset="utf-8">
+<title>ONC File Generator</title>
+<link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="style/style.css" type="text/css" />
+</head>
+
+<body>
+<script> 
+	var guid1 = guid();
+	var guid2 = guid();
+	var result = "";
+	
+	function checkFields() {
+		if(
+			document.forms['oncValues'].name.value === "" ||
+			document.forms['oncValues'].hostname.value === "" ||
+			document.forms['oncValues'].port.value === "" ||
+			document.forms['oncValues'].username.value === "" ||
+			document.forms['oncValues'].X509.value === "" ||
+			document.forms['oncValues'].TLS.value === "" 
+			){
+			alert("Please fill out all the fields");
+			return;
+		}
+		createResult();
+	}
+	
+	
+	function guid() {
+	  function s4() {
+	    return Math.floor((1 + Math.random()) * 0x10000)
+	      .toString(16)
+	      .substring(1);
+	  }
+	  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+	    s4() + '-' + s4() + s4() + s4();
+	}
+
+	function formatValue(value,type){
+
+		if (type === "X509") {
+			var result = value.replace(/^.*#.*$\n/mg, "");
+			result = result.replace(/^.*-.*$/mg, "");
+			result = result.replace(/(\r\n|\n|\r)/gm,"");
+			return result
+		}else if (type === "TLS"){
+			var result = value.replace(/^.*#.*$\n/mg, "");
+			result = result.replace(/(?:\r\n|\r|\n)/g,"\\n");
+			return result			
+		}
+	}
+	
+	function createResult(){
+		
+		result = 
+		`{
+		 "Type":"UnencryptedConfiguration",
+		      "Certificates": [ {
+		      "GUID": "{${guid1}}",
+		      "Type": "Authority",
+		      "X509": "${formatValue(document.forms['oncValues'].X509.value,"X509")}"
+		   } ],
+		    "NetworkConfigurations": [ {
+		      "GUID": "{${guid2}}",
+		      "Name": "${document.forms['oncValues'].name.value}",
+		      "Type": "VPN",
+		      "VPN": {
+		          "Type": "OpenVPN",
+		          "Host": "${document.forms['oncValues'].hostname.value}",
+		          "OpenVPN": {
+		                        "ServerCARef": "{${guid1}}",
+		                    "AuthRetry": "interact",
+		                    "ClientCertType": "Pattern",
+		                    "ClientCertPattern": {              
+		                          "IssuerCARef": [ "{${guid1}}" ]
+		                         },
+		                    "CompLZO": "true",
+		                    "Port": ${document.forms['oncValues'].port.value},
+		                    "Proto": "udp",
+		                    "RemoteCertTLS":"server",
+		                    "RemoteCertEKU": "TLS Web Server Authentication",
+		                    "SaveCredentials": false,
+		                    "ServerPollTimeout": 10,
+		                    "Username": "${document.forms['oncValues'].username.value}",
+		                    "KeyDirection":"1",                    
+		                    "TLSAuthContents":"${formatValue(document.forms['oncValues'].TLS.value,"TLS")}"
+		                     }
+		             }
+		                               } ]
+		}`;
+		
+		download(document.forms['oncValues'].name.value+".onc",result)
+	}
+	
+	function download(filename, text) {
+	    var pom = document.createElement('a');
+	    pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+	    pom.setAttribute('download', filename);
+	
+	    if (document.createEvent) {
+	        var event = document.createEvent('MouseEvents');
+	        event.initEvent('click', true, true);
+	        pom.dispatchEvent(event);
+	    }
+	    else {
+	        pom.click();
+	    }
+	}
+
+</script>
+
+<div id="mainContent">
+	<h1>ONC File Generator</h1>	
+	<p>This page main goal is to generate an ONC file that can be used to import an OpenVPN connection in ChromeOS</p>
+	<br />
+	<br />
+    <form name="oncValues">
+       	<label for="name">Name of the connection</label>
+    	<input type="text" name="name"/>
+    	<br />
+    	<br />
+    	<label for="hostname">Hostname/IP</label>
+    	<input type="text" name="hostname"/>
+     	<br />
+    	<br />
+    	<label for="port">Port</label>
+    	<input type="text" name="port"/>
+     	<br />
+    	<br />
+    	<label for="username">Username</label>
+    	<input type="text" name="username"/>
+     	<br />
+    	<br /> 
+       	<label for="X509">Content of your CA.crt</label>
+    	<textarea name="X509" rows="25" cols="50"></textarea>
+     	<br />
+    	<br />
+       	<label for="TLS">Content of your TLS auth key</label>
+    	<textarea name="TLS" rows="25" cols="50"></textarea>
+     	<br />
+    	<br />
+    	<input type="button" onclick="checkFields()" value="Generate File"/>
+    </form>
+    <br />
+    <br />
+    <p>Thanks to the fine gentleman who made the tutorial <a href="https://docs.google.com/document/d/18TU22gueH5OKYHZVJ5nXuqHnk2GN6nDvfu2Hbrb4YLE/pub">here</a></p>
+</div>
+
+	
+<!-- Google Analytic -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-78698497-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+
+</html>
